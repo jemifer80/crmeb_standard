@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "会员卡激活",
+  "usingComponents": {
+    "ewcomer-pop": "/components/ewcomerPop/index"
+  }
+}

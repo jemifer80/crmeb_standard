@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "消费记录",
+  "usingComponents": {
+    "time-slot": "/components/timeSlot/index",
+    "empty-page": "/components/emptyPage"
+  }
+}

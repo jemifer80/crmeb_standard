@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "mobile-login": "/components/loginMobile/index",
+    "routine-phone": "/components/loginMobile/routine_phone"
+  }
+}

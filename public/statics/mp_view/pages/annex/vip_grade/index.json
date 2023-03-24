@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "会员中心",
+  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#302F35",
+  "usingComponents": {
+    "w-barcode": "/uni_modules/wmf-code/components/w-barcode/index",
+    "w-qrcode": "/uni_modules/wmf-code/components/w-qrcode/index"
+  }
+}

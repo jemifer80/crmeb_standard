@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "短视频",
+  "usingComponents": {
+    "uni-badge": "/uni_modules/uni-badge/components/uni-badge/uni-badge",
+    "uni-popup": "/uni_modules/uni-popup/components/uni-popup/uni-popup",
+    "douyin-scrollview": "/pages/short_video/components/douyin-scrollview/douyin-scrollview",
+    "goods-list": "/pages/short_video/components/goodsList/index"
+  }
+}

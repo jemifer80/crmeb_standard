@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "分销海报",
+  "usingComponents": {
+    "zb-code": "/components/zb-code/zb-code",
+    "home": "/components/home/index"
+  }
+}

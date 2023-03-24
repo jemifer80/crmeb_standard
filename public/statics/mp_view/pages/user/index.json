@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "个人中心",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "disableScroll": true,
+  "usingComponents": {
+    "uni-badge": "/uni_modules/uni-badge/components/uni-badge/uni-badge",
+    "w-barcode": "/uni_modules/wmf-code/components/w-barcode/index",
+    "w-qrcode": "/uni_modules/wmf-code/components/w-qrcode/index",
+    "page-footer": "/components/pageFooter/index",
+    "ewcomer-pop": "/components/ewcomerPop/index",
+    "edit-user-modal": "/components/eidtUserModal/index"
+  }
+}

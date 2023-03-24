@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "推广人列表",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "home": "/components/home/index",
+    "time-slot": "/components/timeSlot/index",
+    "empty-page": "/components/emptyPage"
+  }
+}

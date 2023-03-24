@@ -1,0 +1,21 @@
+{
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "usingComponents": {
+    "jyf-parser": "/components/jyf-parser/jyf-parser",
+    "zb-code": "/components/zb-code/zb-code",
+    "product-con-swiper": "/components/productConSwiper/index",
+    "coupon-list-window": "/components/couponListWindow/index",
+    "product-window": "/components/productWindow/index",
+    "user-evaluation": "/components/userEvaluation/index",
+    "share-red-packets": "/pages/goods_details/components/shareRedPackets/index",
+    "kefu-icon": "/components/kefuIcon/index",
+    "discounts-list": "/pages/goods_details/components/discountsList/index",
+    "cus-preview-img": "/components/cusPreviewImg/index",
+    "ensure": "/pages/goods_details/components/ensure/index",
+    "specs": "/pages/goods_details/components/specs/index",
+    "discount": "/pages/goods_details/components/discount/index",
+    "count-down": "/components/countDown/index",
+    "home-list": "/components/homeList/index"
+  }
+}

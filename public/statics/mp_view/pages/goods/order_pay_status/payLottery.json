@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "支付成功",
+  "usingComponents": {
+    "grids-lottery": "/pages/goods/components/lottery/index",
+    "lottery-aleart": "/pages/goods/components/lotteryAleart/index",
+    "user-address": "/pages/goods/components/userAddress/index",
+    "count-down": "/components/countDown/index"
+  }
+}

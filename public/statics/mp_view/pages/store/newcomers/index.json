@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "新人专享区",
+  "usingComponents": {
+    "count-down": "/components/countDown/index",
+    "home": "/components/home/index"
+  }
+}

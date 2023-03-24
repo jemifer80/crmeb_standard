@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "会员优惠券",
+  "usingComponents": {
+    "home": "/components/home/index"
+  }
+}

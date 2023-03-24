@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "活动规则",
+  "usingComponents": {
+    "jyf-parser": "/components/jyf-parser/jyf-parser"
+  }
+}

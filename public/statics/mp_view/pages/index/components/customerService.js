@@ -1,0 +1,10 @@
+(global["webpackJsonp"]=global["webpackJsonp"]||[]).push([["pages/index/components/customerService"],{"0e7f":function(t,n,e){"use strict";e.d(n,"b",(function(){return o})),e.d(n,"c",(function(){return i})),e.d(n,"a",(function(){}));var o=function(){var t=this.$createElement;this._self._c},i=[]},7593:function(t,n,e){"use strict";e.r(n);var o=e("851d"),i=e.n(o);for(var u in o)["default"].indexOf(u)<0&&function(t){e.d(n,t,(function(){return o[t]}))}(u);n["default"]=i.a},7700:function(t,n,e){"use strict";var o=e("d286"),i=e.n(o);i.a},"851d":function(t,n,e){"use strict";Object.defineProperty(n,"__esModule",{value:!0}),n.default=void 0;var o=e("26cb"),i={name:"customerService",computed:(0,o.mapGetters)(["userInfo"]),props:{dataConfig:{type:Object,default:function(){}},isSortType:{type:String|Number,default:0}},data:function(){return{routineContact:parseFloat(this.dataConfig.routine_contact_type),logoConfig:this.dataConfig.logoConfig.url,topConfig:this.dataConfig.topConfig.val?this.dataConfig.topConfig.val>=80?"80%":this.dataConfig.topConfig.val+"%":"30%"}},created:function(){},methods:{licks:function(){var t={};t="string"===typeof this.userInfo?JSON.parse(this.userInfo):this.userInfo,this.$util.getCustomer(t)},setTouchMove:function(t){t.touches[0].clientY<545&&t.touches[0].clientY>66&&(this.topConfig=t.touches[0].clientY+"px")}}};n.default=i},b5a1:function(t,n,e){"use strict";e.r(n);var o=e("0e7f"),i=e("7593");for(var u in i)["default"].indexOf(u)<0&&function(t){e.d(n,t,(function(){return i[t]}))}(u);e("7700");var a=e("f0c5"),f=Object(a["a"])(i["default"],o["b"],o["c"],!1,null,null,null,!1,o["a"],void 0);n["default"]=f.exports},d286:function(t,n,e){}}]);
+;(global["webpackJsonp"] = global["webpackJsonp"] || []).push([
+    'pages/index/components/customerService-create-component',
+    {
+        'pages/index/components/customerService-create-component':(function(module, exports, __webpack_require__){
+            __webpack_require__('543d')['createComponent'](__webpack_require__("b5a1"))
+        })
+    },
+    [['pages/index/components/customerService-create-component']]
+]);

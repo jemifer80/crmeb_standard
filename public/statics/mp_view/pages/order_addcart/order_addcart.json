@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "购物车",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "coupon-list-window": "/components/couponListWindow/index",
+    "page-footer": "/components/pageFooter/index",
+    "recommend": "/components/recommend/index",
+    "product-window": "/components/productWindow/index",
+    "cart-discount": "/components/cartDiscount/index"
+  }
+}

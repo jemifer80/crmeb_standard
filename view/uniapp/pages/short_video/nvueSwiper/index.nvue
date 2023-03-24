@@ -1,0 +1,1107 @@
+<template>
+	<view class="shortVideo">
+		<!--  
+		注意：这是 H5、微信小程序界面，请勿和 new_index.nvue、index.nvue 混用
+		 
+		1. new_index.nvue、index.nvue这两个是App页面
+		 
+		2. 另外：data.js 是上一版本留下的假数据，这一版改成了 URL 请求了（如不需要可以删除，也可作为后端请求参考）
+		 
+		3. 请各位大神多多留手，我已经把请求内存开到最大了
+		 
+		4. 视频 id 切记是字符串类型  
+		 -->
+		<!-- 头部导航 -->
+		<view class="header">
+			<view class="items" @click.stop="navTap(2)">
+				<text class="tName" :class="currentNav==2?'on':''">推荐</text>
+				<view class="tLine" v-if="currentNav==2"></view>
+			</view>
+			<view class="items" @click.stop="navTap(1)">
+				<text class="tName" :class="currentNav==1?'on':''">最新</text>
+				<view class="tLine" v-if="currentNav==1"></view>
+			</view>
+		</view>
+		<view class="footer acea-row row-around row-middle">
+			<text class="items" @click="goIndex">首页</text>
+			<text class="items on">视频</text>
+			<view class="items" @click="goCarts"><text>购物车</text>
+				<!-- <view class="cartNum" v-if="cartNum>0">{{cartNum}}</view> -->
+				<uni-badge v-if="cartNum>0" class="uni-badge-left-margin" type='error' :text="cartNum" />
+			</view>
+			<text class="items" @click="goUser">我的</text>
+		</view>
+		<view class="noVideo acea-row row-center-wrapper" v-if="!dataList.length">
+			<view>
+				<image :src="imgHost+'/statics/images/no-video.png'" class="pictrue"></image>
+				<text class="tips">暂无短视频内容哦~</text>
+			</view>
+		</view>
+		<image v-if="isShowAixin" src="../static/img/index/aixining.png"
+			:style="'position: fixed; margin-left: '+ aixinLeft +'px; margin-top: '+ aixinTop +'px; width: 70px; height: 65px; transform: rotate('+ Rotate +'deg);'">
+		</image>
+		<swiper :style="'width: '+ windowWidth +'px; height: '+ (windowHeight) +'px; background-color: #000000;'"
+			:vertical="true" @animationfinish="animationfinish" previous-margin="0rpx" @change="change" :current="k"
+			:indicator-dots="false">
+			<swiper-item v-for="(list,index) in dataList">
+				<view v-if="Math.abs(k-index)<=1">
+					<view>
+						<!-- 
+						1.v-if：用于控制视频在节点的渲染数
+						2.muted的默认值是 false，代表默认是禁音视频的
+						3.http-cache默认开启视频缓存
+						4.poster（封面（方案一））：这里的封面默认处理存储在阿里云的视频
+						5.show-loading：这里默认去掉播放转圈的标志
+						v-if="Math.abs(k-index)<=1"
+						 -->
+						<video :id="list.id+''+index" :loop="true" :muted="list.isplay" :controls="false"
+							:http-cache="true" :page-gesture="false" :show-fullscreen-btn="false" :show-loading="false"
+							:show-center-play-btn="false" :enable-progress-gesture="false" :src="list.video_url"
+							@ended="ended" @click="tapVideoHover(list.state,$event)"
+							:style="'width: '+ windowWidth +'px; height: '+ windowHeight +'px; background-color: #000000; z-index: -1;'"
+							:poster="list.video_url+'?x-oss-process=video/snapshot,t_100,f_jpg'"></video>
+						<!-- 
+						1.这里是封面（方案二）：这里的封面可以自定义。
+						2.也在代码中做了批注，两种方案可以共存，不会相互影响。
+						-->
+						<image v-if="!list.playIng" :src="list.video_url+'?x-oss-process=video/snapshot,t_100,f_jpg'"
+							:style="'width: '+ windowWidth +'px; height: '+ windowHeight +'px; position: absolute;'"
+							mode="aspectFit"></image>
+					</view>
+					<!-- 播放状态：pause 的时候就会暂停 -->
+					<view class="videoHover" @click="tapVideoHover(list.state,$event)" @touchstart="touchstartHover"
+						:style="'width: '+ windowWidth +'px; height: '+ windowHeight +'px;'">
+						<image v-if="list.state=='pause'" class="playState" src="../static/img/index/play.png"></image>
+					</view>
+					<view class="userInfo">
+						<!-- 1.头像 -->
+						<view class="pictrue">
+							<image @click="tozuozhe(list)" class="userAvatar" :style="list.is_live?'border-width:0':''"
+								:src="list.type_image" mode="aspectFill"></image>
+							<!-- #ifdef MP -->
+							<view class="live" v-if="list.is_live" @click="goLive"></view>
+							<!-- #endif -->
+						</view>
+						<!-- 2.点赞 -->
+						<view @click="cLike(list);" class="likes">
+							<image v-if="list.is_like" src="../static/img/index/xin.png"></image>
+							<image v-if="!list.is_like" src="../static/img/index/xin-2.png"></image>
+							<text :class="{'likeNumActive':list.is_like}">{{list.like_num}}</text>
+						</view>
+						<!-- 3.评论 -->
+						<view class="comment" @click="toComment(list)" style="opacity: 0.9; margin-top: 18px;">
+							<image src="../static/img/index/evaluate.png"></image>
+							<text>{{list.comment_num}}</text>
+						</view>
+						<!-- 收藏 -->
+						<view @click="cCollect(list)" class="collects">
+							<image v-if="list.is_collect" src="../static/img/index/collection02.png"></image>
+							<image v-if="!list.is_collect" src="../static/img/index/collection01.png"></image>
+							<text :class="{'likeNumActive':list.is_collect}">{{list.collect_num}}</text>
+						</view>
+						<!-- 4.分享 -->
+						<!-- #ifdef H5 -->
+						<view @click="share(list.id)" class="shares" v-if="$wechat.isWeixin()">
+							<image src="../static/img/index/we-chat.png"></image>
+							<text>分享</text>
+						</view>
+						<view @click="getId(list.id)" class="copy-data"
+							:data-clipboard-text="imgHost+'/pages/short_video/nvueSwiper/index?id='+ list.id"
+							style="opacity: 0.9; margin-top: 17px;" v-else>
+							<image src="../static/img/index/we-chat.png"
+								style="width: 62rpx; height: 48rpx; position: absolute; right: 5px;"></image>
+							<text
+								style="color: #FFFFFF; margin-top: 5px; font-size: 12px; text-align: center; margin-top: 30px;">分享</text>
+						</view>
+						<!-- #endif -->
+						<!-- #ifdef MP -->
+						<button open-type="share" hover-class="none"
+							style="margin-top: 17px;background-color: transparent;position: relative;height: 85rpx;"
+							@click="getId(list.id)">
+							<image src="../static/img/index/we-chat.png"
+								style="width: 62rpx; height: 48rpx; position: absolute; right: 5px;"></image>
+							<text
+								style="color: #FFFFFF; font-size: 12px; text-align: center;position: absolute;top:52rpx;right: 24rpx;">分享</text>
+						</button>
+						<!-- <button class="item" open-type="share" hover-class="none">
+							<view class="pictrue">
+								<image src="../../static/images/weixin.png"></image>
+							</view>
+							<view class="">分享给好友</view>
+						</button> -->
+						<!-- #endif -->
+					</view>
+					<!-- 最底下的文字部分 -->
+					<view class="content">
+						<view class="cart" @click="goCart(list)" v-if="list.product_num>0">
+							<image class="cartPic" src="../static/img/index/shopping-car.png"></image>
+							<text class="cartName">购物</text>
+							<text class="line"></text>
+							<text class="cartName">视频款请点击这里购买</text>
+						</view>
+						<view class="timeCon" :style="'width: '+ (windowWidth - 90) +'px;'">
+							<text class="userName line1"
+								:style="'max-width: '+ (windowWidth-160) +'px;'">{{list.type_name}}</text>
+							<text class="time">.{{list.date}}</text>
+						</view>
+						<view class="words" :style="'width: '+ (windowWidth - 120) +'px;'">
+							<view v-if="list.isMore || list.desc.length<=29">
+								<text class="info">{{list.desc}}</text>
+								<view class="close">
+									<text v-if="list.isMore" class="more" @click="moreTap(list)">收起</text>
+									<image v-if="list.isMore" class="imgClose" src="../static/img/index/drop-down.png">
+									</image>
+								</view>
+							</view>
+							<view class="wordsCon" v-else>
+								<text class="info">{{list.desc.slice(0,29)}}...</text>
+								<text class="more" @click="moreTap(list)">更多</text>
+								<image class="img" src="../static/img/index/drop-down.png"></image>
+							</view>
+						</view>
+					</view>
+				</view>
+			</swiper-item>
+		</swiper>
+		<uni-popup type="bottom" ref="pinglun" @touchmove.stop.prevent="moveHandle">
+			<view
+				:style="'width: '+ windowWidth +'px;background-color: #fff; border-top-left-radius: 10px; border-top-right-radius: 10px;'">
+				<!-- 
+				 注意：
+				 deleteIOSHeight
+				 deleteAndroidHeight
+				 这两个参数用于控制评论等的高度
+				 -->
+				<douyin-scrollview v-if="isComment" ref="comments" :Width="windowWidth" :Height="(boxStyle.height/1.23)"
+					:deleteIOSHeight="36" :deleteAndroidHeight="15" :pinlunNum="pinlunNum" :videoID="videoID"
+					@closeScrollview="closeScrollview" @pinlunFun="pinlunFun"></douyin-scrollview>
+			</view>
+		</uni-popup>
+		<uni-popup type="bottom" ref="pinglunGoods" @touchmove.stop.prevent="moveHandle">
+			<view
+				:style="'width: '+ windowWidth +'px; background-color: #F5F5F5; border-top-left-radius: 10px; border-top-right-radius: 10px;'">
+				<goodsList ref="goodsLists" :Width="windowWidth" :Height="(boxStyle.height/1.18)"></goodsList>
+			</view>
+		</uni-popup>
+		<image v-if="H5ShareBox" class="shareImg" :src="imgHost + '/statics/images/share-info.png'"
+			@click="H5ShareBox = false"></image>
+	</view>
+</template>
+
+<script>
+	const app = getApp();
+	// import userList from '../new_index/data.js'//这个是假数据
+	import {
+		toLogin
+	} from '@/libs/login.js';
+	import {
+		mapGetters
+	} from 'vuex';
+	/*
+	引入评论组件
+	*/
+	import douyinScrollview from '../components/douyin-scrollview/douyin-scrollview.vue'
+	import goodsList from '../components/goodsList/index.vue'
+	import {
+		HTTP_REQUEST_URL
+	} from '@/config/app';
+	import {
+		videoList,
+		markeVideo
+	} from '@/api/short-video.js';
+	import {
+		getCartCounts,
+	} from '@/api/order.js';
+	import ClipboardJS from "@/plugin/clipboard/clipboard.js";
+	export default {
+		components: {
+			douyinScrollview,
+			goodsList
+		},
+		computed: mapGetters(['isLogin', 'uid', 'cartNum']),
+		data() {
+			return {
+				imgHost: HTTP_REQUEST_URL,
+				videoID: 0, //视频id
+				pinlunNum: 0,
+				windowWidth: 0,
+				windowHeight: 0,
+				platform: "",
+				deleteHeight: 0,
+				isComment: 0,
+				dataList: [],
+				k: 0,
+				oldVideo: "",
+				voice: "",
+				timeout: "",
+				current: 0,
+				boxStyle: { //视频，图片封面样式🌟💗
+					'height': 0,
+					'width': 0,
+				},
+				// 引入评论 - 参数
+				heightNum: 1.3,
+				// 双击点赞参数
+				touchNum: 0,
+				aixinLeft: 0,
+				aixinTop: 0,
+				isShowAixin: false,
+				Rotate: 0,
+				currentNav: 1,
+				limit: 3,
+				page: 1,
+				oldCurrent: 1,
+				H5ShareBox: false
+			}
+		},
+		watch: {
+			currentNav(news, old) {
+				this.oldCurrent = old;
+			},
+			k(k, old_k) {
+				if (this.oldCurrent != this.currentNav) {
+					this.oldCurrent = this.currentNav
+					return false
+				}
+				this.dataList[old_k].playIng = false //如果视频暂停，就加载封面
+				this.dataList[old_k].isplay = true
+				this.dataList[old_k].state = 'pause'
+				console.log('预留第' + (old_k + 1) + '个视频：' + this.dataList[old_k].id + '' + old_k)
+				// 2.0版本已经去掉了下面这一句，视频不用暂停，只需要把声音禁止就行
+				uni.createVideoContext(this.dataList[old_k].id + '' + old_k, this)
+					.stop() //如果视频暂停，那么旧视频停止，这里的this.dataList[old_k].id + '' + old_k，后面加 old_k 是为了每一个视频的 id 值不同，这样就可以大程度的避免串音问题
+				console.log('已经暂停 --> 第' + (old_k + 1) + '个视频～') //提示
+				this.dataList[k].state = 'play'
+				setTimeout(() => {
+					uni.createVideoContext(this.dataList[k].id + '' + k, this).play()
+					setTimeout(() => {
+						this.dataList[k].isplay = false
+						this.dataList[k].playIng = true
+					}, 50)
+				}, 250)
+				var p = k + 1;
+				// console.log('预加载第' + (p + 1) + '个视频：' + this.dataList[p].id+''+p)
+			}
+		},
+		onLoad(options) {
+			this.videoID = options.id || 0;
+			this.getOptions(options);
+			this.platform = uni.getSystemInfoSync().platform
+			var model = uni.getSystemInfoSync().model
+			if (this.platform == 'ios' && (model !== 'iPhone6' || model !== 'iPhone6s' || model !== 'iPhone7' || model !==
+					'iPhone8')) {
+				this.deleteHeight = 0 //有 tabbar的 修改这里可以改变视频高度
+			}
+			this.windowWidth = uni.getSystemInfoSync().windowWidth
+			this.windowHeight = uni.getSystemInfoSync().windowHeight - 59
+			this.boxStyle.width = this.windowWidth + 'px' //给宽度加px
+			this.boxStyle.height = this.windowHeight - this.deleteHeight; //有 tabbar的 修改这里可以改变视频高度
+			this.get() //刚进入页面加载数据
+			if (this.isLogin) {
+				this.getCartNum()
+			}
+		},
+		onShow() {
+			if (this.dataList.length !== 0) {
+				this.dataList[this.k].state = 'play';
+				uni.createVideoContext(this.dataList[this.k].id + '' + this.k, this).play()
+			}
+		},
+		onHide() {
+			this.dataList[this.k].state = 'pause'; //界面隐藏也要停止播放视频
+			uni.createVideoContext(this.dataList[this.k].id + '' + this.k, this).pause(); //暂停以后继续播放
+			console.log('到后台');
+		},
+		onReady: function() {
+			// #ifdef H5
+			this.$nextTick(function() {
+				const clipboard = new ClipboardJS(".copy-data");
+				clipboard.on("success", () => {
+					this.$util.Tips({
+						title: '复制成功'
+					});
+				});
+			});
+			// #endif
+		},
+		// #ifdef MP
+		onShareAppMessage: function() {
+			let uid = this.uid ? this.uid : 0;
+			let data = this.dataList[this.k];
+			this.cShare(this.videoID);
+			return {
+				title: data.type_name || '',
+				imageUrl: data.image || '',
+				path: '/pages/short_video/nvueSwiper/index?spid=' + uid + '&id=' + this.videoID
+			};
+		},
+		// #endif
+		methods: {
+			getCartNum: function() {
+				getCartCounts().then(res => {
+					this.$store.commit('indexData/setCartNum', res.data.count > 99 ? '..' : res.data.count +
+						'')
+				});
+			},
+			goIndex() {
+				uni.switchTab({
+					url: '/pages/index/index'
+				})
+			},
+			goCarts() {
+				uni.switchTab({
+					url: '/pages/order_addcart/order_addcart'
+				})
+			},
+			goUser() {
+				uni.switchTab({
+					url: '/pages/user/index'
+				})
+			},
+
+			goLive() {
+				uni.navigateTo({
+					url: `/pages/columnGoods/live_list/index`
+				});
+			},
+			tozuozhe(item) {
+				if (item.type == 0) {
+					uni.reLaunch({
+						url: `/pages/index/index`
+					});
+				} else {
+					uni.reLaunch({
+						url: `/pages/store_cate/store_cate?id=` + item.relation_id
+					});
+				}
+			},
+			getOptions(options) {
+				let that = this;
+				// #ifdef MP
+				if (options.scene) {
+					let value = that.$util.getUrlParams(decodeURIComponent(options.scene));
+					//记录推广人uid
+					if (value.spid) app.globalData.spid = value.spid;
+					if (value.id) that.videoID = value.id || 0;
+				}
+				// #endif
+				if (options.spid) app.globalData.spid = options.spid;
+			},
+			// #ifdef H5
+			// 微信分享；
+			setOpenShare: function(id) {
+				let that = this;
+				let uid = this.uid ? this.uid : 0;
+				let href = location.href;
+				if (that.$wechat.isWeixin()) {
+					let data = this.dataList[that.k];
+					let configAppMessage = {
+						desc: data.desc,
+						title: data.type_name,
+						link: href.indexOf('?') === -1 ? href + '?spid=' + uid + '&id=' + id : href + '&spid=' +
+							uid + '&id=' + id,
+						imgUrl: data.image,
+						success:function(res){
+						   that.cShare(id);
+						}
+					};
+					that.$wechat.wechatEvevt(['updateAppMessageShareData', 'updateTimelineShareData',
+							'onMenuShareAppMessage',
+							'onMenuShareTimeline'
+						],
+						configAppMessage);
+				}
+			},
+			// #endif
+			goCart(item) {
+				if (this.isLogin === false) {
+					// #ifndef MP
+					return toLogin();
+					// #endif
+					// #ifdef MP
+					uni.showToast({
+						title: '请登录',
+						icon: 'none',
+						duration: 1000
+					});
+					return
+					// #endif
+				}
+				// uni.showToast({
+				// 	title: '加载中...',
+				// 	icon: 'none',
+				// 	position: 'bottom',
+				// 	duration: 300
+				// })
+				// #ifdef H5
+				uni.setStorageSync("videoID", parseInt(item.id));
+				// #endif
+				// #ifdef MP
+				this.$refs.goodsLists.productList(item.id, 1);
+				// #endif
+				this.$refs.pinglunGoods.open('bottom')
+			},
+			navTap(n) {
+				this.currentNav = n;
+				this.timeout = "";
+				this.k = 0;
+				this.page = 1;
+				this.dataList = [];
+				this.get();
+			},
+			moreTap(item) {
+				item.isMore = !item.isMore;
+			},
+			moveHandle() {},
+			closeScrollview() {
+				// 点击评论里面的叉叉，就会关闭评论
+				this.$refs.pinglun.close();
+				this.isComment = false
+			},
+			pinlunFun(e,videoID) {
+				this.pinlunNum = e;
+				this.dataList.forEach(item => {
+					if (item.id == videoID) {
+						item.comment_num = e;
+					}
+				})
+				// this.isComment = false
+			},
+			toComment(item) {
+				this.isComment = true
+				console.log('我被点了')
+				// 注意点击评论之后会执行这里
+				/*
+				（1）先加载缓冲
+				（2）获取当前视频 ID 信息
+				（3）🌟🌟🌟🌟重要🌟🌟🌟🌟
+					- 一定要记得看 index.vue 里面
+					 uni.setStorageSync("user",this.peopleList[i]);
+					 这个东西，用于存储当前用户信息。在 插件里面会使用到这个东西，
+					 记得写一下。
+					 
+				（4）打开评论
+				*/
+				uni.showToast({
+					title: '加载中...',
+					icon: 'none',
+					position: 'bottom',
+					duration: 300
+				})
+				this.$nextTick(e => {
+					this.pinlunNum = item.comment_num;
+					// #ifdef H5
+					this.videoID = parseInt(item.id);
+					// #endif
+					// #ifdef MP
+					this.$refs.comments.getnewpinlun(item.id, 1);
+					// #endif
+					this.$refs.pinglun.open('bottom')
+				})
+
+			},
+			ended() {
+				// 1.播放当前视频结束时触发，自动切换下一个视频
+				// this.current = this.k+1
+			},
+			// 双击点赞效果
+			touchstartHover(event) {
+				if (this.touchNum >= 1) {
+					// console.log('双击 -- X坐标：'+ event.touches[0].screenX);
+					// console.log('双击 -- Y坐标：'+ event.touches[0].screenY);
+					this.aixinLeft = event.touches[0].screenX - 50;
+					this.aixinTop = event.touches[0].screenY - 50;
+					this.isShowAixin = true;
+					let max = 40;
+					let min = -40;
+					this.Rotate = Math.floor(Math.random() * (max - min + 1)) + min;
+					setTimeout(() => {
+						this.isShowAixin = false;
+					}, 700)
+				}
+			},
+			//点击播放&&暂停
+			tapVideoHover(state, event) {
+				this.dataList[this.k].isShowimage = false
+				this.dataList[this.k].isShowProgressBarTime = false
+				this.ProgressBarOpacity = 0.5
+				this.dotWidth = 0
+				console.log('state--', state);
+				// 1.启用双击点赞 --- start
+				this.touchNum++;
+				setTimeout(() => {
+					if (this.touchNum == 1) {
+						if (state == 'play' || state == 'continue') {
+							this.dataList[this.k].state = 'pause';
+						} else {
+							this.dataList[this.k].state = 'continue';
+						}
+						if (this.dataList[this.k].state == 'continue') {
+							uni.createVideoContext(this.dataList[this.k].id + '' + this.k, this).play(); //暂停以后继续播放
+						}
+						if (this.dataList[this.k].state == 'pause') {
+							uni.createVideoContext(this.dataList[this.k].id + '' + this.k, this)
+								.pause(); //暂停以后继续播放
+						}
+					}
+					if (this.touchNum >= 2) {
+						this.doubleLike();
+					}
+					this.touchNum = 0;
+				}, 200)
+				// --------------- ending
+				// 2. 不启用双击点赞 start
+				// if(state=='play'||state=='continue'){
+				// 	this.dataList[this.k].state = 'pause';
+				// }else{
+				// 	this.dataList[this.k].state = 'continue';
+				// }
+				// if(this.dataList[this.k].state == 'continue'){
+				// 	uni.createVideoContext(this.dataList[this.k].id+''+this.k,this).play();//暂停以后继续播放
+				// }
+				// if(this.dataList[this.k].state == 'pause'){
+				// 	uni.createVideoContext(this.dataList[this.k].id+''+this.k,this).pause();//暂停以后继续播放
+				// }
+				// --------------- ending
+			},
+			doubleLike() {
+				if (this.dataList[this.k].is_like == false) {
+					this.dataList[this.k].like_num += 1;
+					this.dataList[this.k].is_like = true;
+				}
+				/*
+				点赞
+				*/
+			},
+			change(event) {
+				this.k = event.detail.current
+			},
+			animationfinish(event) {
+				// 1.这里进行判断，如果是最后一个视频就进入 get() 方法加载视频进入列表
+				if (this.k == this.dataList.length - 1) {
+					this.GET()
+				}
+			},
+			//每一组结束时新的请求
+			GET() {
+				videoList({
+					page: this.page,
+					limit: this.limit,
+					order_type: this.currentNav,
+					id: (this.page > 1 ||  this.currentNav == 2)? 0 : this.videoID
+				}).then(res => {
+					this.page = this.page + 1;
+					var msg = res.data
+					// 2.这里把视频添加到视频列表
+					for (let i = 0; i < msg.length; i++) {
+						this.dataList.push(msg[i])
+					}
+				}).catch(err => {
+					return uni.showToast({
+						title: err,
+						icon: 'none',
+						duration: 2000
+					});
+				})
+			},
+			get() {
+				// 1.这里引入后端请求数据
+				videoList({
+					page: this.page,
+					limit: this.limit,
+					order_type: this.currentNav,
+					id: (this.page > 1 || this.currentNav == 2)?0:this.videoID
+				}).then(res => {
+					this.page = this.page + 1;
+					var msg = res.data
+					// 2.这里把视频添加到视频列表
+					for (let i = 0; i < msg.length; i++) {
+						this.dataList.push(msg[i])
+					}
+					// #ifdef H5
+					if (this.isLogin) {
+						this.setOpenShare(this.videoID);
+					}
+					// #endif
+					// 3.播放当前视频
+					setTimeout(() => {
+						this.dataList[this.k].isplay = false
+						this.dataList[this.k].state = 'play'
+						// uni.createVideoContext(this.dataList[0].id,this).seek(0)
+						// uni.createVideoContext(this.dataList[0].id,this).play()
+						uni.createVideoContext(this.dataList[this.k].id + '' + this.k, this).seek(0)
+						uni.createVideoContext(this.dataList[this.k].id + '' + this.k, this).play()
+						this.dataList[this.k].playIng = true
+					}, 200)
+					// start - 预加载开始
+					var p = this.k
+						++p
+					if(this.dataList[p].id){
+						setTimeout(() => {
+							uni.createVideoContext(this.dataList[p].id + '' + p, this).play()
+						}, 20)
+						clearTimeout(this.timeout)
+						this.timeout = setTimeout(() => {
+							uni.createVideoContext(this.dataList[p].id + '' + p, this).seek(0)
+							uni.createVideoContext(this.dataList[p].id + '' + p, this).pause()
+							console.log('预加载第' + (p + 1) + '个视频：' + this.dataList[p].id + '' + p)
+						}, 1500)
+					}	
+					// end - 预加载结束
+				}).catch(err => {
+					return uni.showToast({
+						title: err,
+						icon: 'none',
+						duration: 2000
+					});
+				})
+			},
+			cShare(id){
+				markeVideo('share',id).then(res=>{}).catch(err=>{
+					return uni.showToast({
+						title: err,
+						icon: 'none',
+						duration: 2000
+					});
+				})
+			},
+			getId(id) {
+				this.videoID = id;
+				// #ifdef H5
+				this.cShare(id);
+				// #endif
+			},
+			share(id) {
+				this.H5ShareBox = true;
+				// #ifdef H5
+				if (this.isLogin) {
+					this.setOpenShare(id);
+				}
+				// #endif
+			},
+			cLike(item) {
+				markeVideo('like', item.id).then(res => {
+					this.dataList[this.k].is_like = !this.dataList[this.k].is_like
+					const video = this.dataList[this.k];
+					item.is_like ? video.like_num += 1 : video.like_num -= 1;
+				}).catch(err => {
+					return uni.showToast({
+						title: err,
+						icon: 'none',
+						duration: 2000
+					});
+				})
+			},
+			cCollect(item) {
+				markeVideo('collect', item.id).then(res => {
+					this.dataList[this.k].is_collect = !this.dataList[this.k].is_collect
+					const video = this.dataList[this.k];
+					item.is_collect ? video.collect_num += 1 : video.collect_num -= 1;
+				}).catch(err => {
+					return uni.showToast({
+						title: err,
+						icon: 'none',
+						duration: 2000
+					});
+				})
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	.shares{
+		opacity: 0.9; 
+		margin-top: 17px;
+		image{
+			width: 62rpx; 
+			height: 48rpx; 
+			position: absolute; 
+			left: 50%;
+			margin-left: -31rpx;
+		}
+		text{
+			color: #FFFFFF; 
+			margin-top: 5px; 
+			font-size: 12px; 
+			text-align: center; 
+			margin-top: 30px;
+		}
+	}
+	.comment{
+		image{
+			width: 54rpx; 
+			height: 50rpx; 
+			position: absolute; 
+			left: 50%;
+			margin-left: -27rpx;
+		}
+		text{
+			color: #FFFFFF; 
+			font-size: 12px; 
+			font-weight: 400; 
+			text-align: center; 
+			margin-top: 29px;
+		}
+	}
+	.likes{
+		opacity: 0.9;
+		margin-top: 5px;
+		image{
+			width: 58rpx; 
+			height: 58rpx; 
+			position: absolute; 
+			left: 50%;
+			margin-left: -29rpx;
+		}
+		text{
+			color: #FFFFFF; 
+			margin-top: 5px; 
+			font-size: 12px; 
+			text-align: center; 
+			margin-top: 32px; 
+			font-weight: 400;
+		}
+	}
+	.collects{
+		opacity: 0.9; 
+		margin-top: 18px;
+		image{
+			width: 58rpx; 
+			height: 58rpx; 
+			position: absolute; 
+			left: 50%;
+			margin-left: -29rpx;
+		}
+		text{
+			color: #FFFFFF; 
+			margin-top: 5px; 
+			font-size: 12px; 
+			text-align: center; 
+			margin-top: 36px; 
+			font-weight: 400;
+		}
+	}
+	.shortVideo {
+		height: 100vh;
+		background-color: #000000;
+	}
+
+	.shareImg {
+		z-index: 1000;
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.container {
+		background-color: #000000;
+	}
+
+	.item {
+		/* width : 750rpx; */
+		background-color: #000000;
+		position: relative;
+	}
+
+	.videoHover {
+		position: absolute;
+		top: 0;
+		left: 0;
+		flex: 1;
+		background-color: rgba(0, 0, 0, 0.1);
+		justify-content: center;
+		align-items: center;
+
+		/* border-style: dashed;
+		border-color: #DD524D;
+		border-width: 1px; */
+	}
+
+	.playState {
+		width: 160rpx;
+		height: 160rpx;
+		opacity: 0.2;
+	}
+
+	.userInfo {
+		position: absolute;
+		bottom: 30px;
+		right: 10px;
+		flex-direction: column;
+
+		.pictrue {
+			width: 92rpx;
+			height: 92rpx;
+			margin-bottom: 15px;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			position: relative;
+
+			.live {
+				width: 92rpx;
+				height: 92rpx;
+				background: url('../static/img/index/live-avatar.png') no-repeat;
+				background-size: 100% 100%;
+				position: absolute;
+				top: 2rpx;
+				left: 2rpx;
+			}
+		}
+	}
+
+	.userAvatar {
+		border-radius: 500%;
+		border-style: solid;
+		border-width: 2px;
+		border-color: #ffffff;
+		width: 80rpx;
+		height: 80rpx;
+		display: block;
+	}
+
+	.likeIco,
+	.shareIco,
+	.commentIco {
+		width: 60rpx;
+		height: 60rpx;
+		margin-top: 15px;
+	}
+
+	.likeNum,
+	.commentNum,
+	.shareTex {
+		color: #ffffff;
+		font-size: 30rpx;
+		text-align: center;
+		margin: 5px;
+	}
+
+	.likeNumActive {
+		color: red;
+	}
+
+	.noVideo {
+		position: fixed;
+		top: 400rpx;
+		z-index: 9;
+		width: 750rpx;
+		flex-direction: row;
+		justify-content: center;
+
+		.pictrue {
+			width: 414rpx;
+			height: 256rpx;
+		}
+
+		.tips {
+			text-align: center;
+			margin-top: 14rpx;
+			font-size: 26rpx;
+			color: #999;
+		}
+	}
+
+	.footer {
+		flex-direction: row;
+		background-color: #161616;
+		height: 118rpx;
+		position: fixed;
+		bottom: 0;
+		z-index: 9;
+		width: 750rpx;
+		line-height: 100rpx;
+
+		.items {
+			position: relative;
+			color: #999999;
+			font-size: 30rpx;
+
+			.cart {
+				color: #999999;
+				font-size: 30rpx;
+			}
+
+			&.on {
+				color: #fff;
+			}
+			
+			.uni-badge-left-margin{
+				position: absolute;
+				/* #ifdef MP */
+				right: -15px;
+				top: -8px;
+				/* #endif */
+				/* #ifdef H5 */
+				right: -11px;
+				top: 8px;
+				/* #endif */
+			}
+			/deep/.uni-badge{
+				border: 1px solid #e93323;
+				background-color: #e93323;
+			}
+
+			.cartNum {
+				position: absolute;
+				height: 28rpx;
+				background: #E93323;
+				border-radius: 15rpx;
+				color: #fff;
+				line-height: 27rpx;
+				padding: 0 8rpx 0 4rpx;
+				right: -10px;
+				top: 14px;
+				font-size: 22rpx;
+				display: block;
+			}
+		}
+	}
+
+	.header {
+		position: fixed;
+		z-index: 9;
+		width: 750rpx;
+		height: 86rpx;
+		flex-direction: row;
+		justify-content: center;
+		top: 36rpx;
+
+		.items {
+			margin: 0 30rpx;
+
+			.tName {
+				color: rgba(255,255,255,0.7);
+				font-size: 32rpx;
+				&.on{
+					color: rgba(255,255,255,0.95);
+					font-weight: 600;
+				}
+			}
+
+			.tLine {
+				width: 30rpx;
+				height: 4rpx;
+				background: #FFFFFF;
+				border-radius: 2rpx;
+				margin-left: 15rpx;
+				margin-top: 10rpx;
+			}
+		}
+	}
+
+	.content {
+		width: 590rpx;
+		z-index: 99;
+		position: absolute;
+		bottom: 30px;
+		/* justify-content: center; */
+		padding: 15rpx 0;
+		flex-direction: column;
+		justify-content: flex-start;
+		color: #ffffff;
+		left: 50%;
+		margin-left: -345rpx;
+
+		.time {
+			font-size: 24rpx;
+			color: rgba(255, 255, 255, 0.5);
+			margin-left: 12rpx;
+		}
+
+		.cart {
+			background: rgba(153, 153, 153, 0.3);
+			width: 376rpx;
+			height: 48rpx;
+			border-radius: 4rpx;
+			margin-bottom: 22rpx;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+
+			.cartPic {
+				width: 36rpx;
+				height: 36rpx;
+				margin-right: 14rpx;
+			}
+
+			.cartName {
+				font-size: 24rpx;
+				color: #fff;
+			}
+
+			.line {
+				width: 2rpx;
+				height: 22rpx;
+				background-color: rgba(255, 255, 255, 0.3);
+				margin: 0 12rpx;
+			}
+		}
+	}
+
+	.timeCon {
+		flex-direction: row;
+		align-items: center;
+
+		.userName {
+			font-size: 30rpx;
+			color: #ffffff;
+		}
+	}
+
+	.words {
+		margin-top: 20rpx;
+
+		.close {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: flex-end;
+			margin-right: 20rpx;
+
+			.imgClose {
+				width: 18rpx;
+				height: 10rpx;
+				margin-left: 10rpx;
+			}
+		}
+
+		.wordsCon {
+			position: relative;
+
+			.more {
+				position: absolute;
+				bottom: 0;
+				right: 40rpx;
+				font-size: 26rpx;
+			}
+
+			.img {
+				width: 18rpx;
+				height: 10rpx;
+				margin-left: 4rpx;
+				position: absolute;
+				bottom: 7rpx;
+				right: 15rpx;
+			}
+		}
+
+		.info {
+			color: #fff;
+			font-size: 28rpx;
+		}
+
+		.more {
+			font-size: 26rpx;
+			color: #AAAAAA;
+			font-weight: 400;
+		}
+	}
+
+	.root {
+		background-color: #000000;
+	}
+</style>

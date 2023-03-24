@@ -1,0 +1,1 @@
+<view><view class="title">活动规则</view><view class="conter"><jyf-parser class="vue-ref" vue-id="bbe6c45c-1" html="{{info}}" tag-style="{{tagStyle}}" data-ref="article" bind:__l="__l"></jyf-parser></view></view>

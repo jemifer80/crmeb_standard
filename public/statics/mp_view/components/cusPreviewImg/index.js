@@ -1,0 +1,10 @@
+(global["webpackJsonp"]=global["webpackJsonp"]||[]).push([["components/cusPreviewImg/index"],{"094f":function(t,n,e){"use strict";e.d(n,"b",(function(){return i})),e.d(n,"c",(function(){return u})),e.d(n,"a",(function(){}));var i=function(){var t=this.$createElement,n=(this._self._c,this.showBox?this.list.length:null),e=this.showBox&&n>0?Number(this.currentIndex):null,i=this.showBox&&n>0?this.list.length:null;this.$mp.data=Object.assign({},{$root:{g0:n,m0:e,g1:i}})},u=[]},"17d4":function(t,n,e){"use strict";e.r(n);var i=e("094f"),u=e("cdcb");for(var r in u)["default"].indexOf(r)<0&&function(t){e.d(n,t,(function(){return u[t]}))}(r);e("8ad7");var c=e("f0c5"),o=Object(c["a"])(u["default"],i["b"],i["c"],!1,null,"20dec13c",null,!1,i["a"],void 0);n["default"]=o.exports},"553d":function(t,n,e){"use strict";Object.defineProperty(n,"__esModule",{value:!0}),n.default=void 0;var i={name:"cus-previewImg",props:{list:{type:Array,required:!0,default:function(){return[]}},circular:{type:Boolean,default:!0},duration:{type:Number,default:500}},data:function(){return{currentIndex:0,showBox:!1}},watch:{list:function(t){}},methods:{changeSwiper:function(t){this.currentIndex=t.target.current,this.$emit("changeSwitch",t.target.current)},open:function(t){t&&this.list.length&&(this.currentIndex=this.list.map((function(t){return t.suk})).indexOf(t),this.showBox=!0)},close:function(){this.showBox=!1}}};n.default=i},"8ad7":function(t,n,e){"use strict";var i=e("a25b"),u=e.n(i);u.a},a25b:function(t,n,e){},cdcb:function(t,n,e){"use strict";e.r(n);var i=e("553d"),u=e.n(i);for(var r in i)["default"].indexOf(r)<0&&function(t){e.d(n,t,(function(){return i[t]}))}(r);n["default"]=u.a}}]);
+;(global["webpackJsonp"] = global["webpackJsonp"] || []).push([
+    'components/cusPreviewImg/index-create-component',
+    {
+        'components/cusPreviewImg/index-create-component':(function(module, exports, __webpack_require__){
+            __webpack_require__('543d')['createComponent'](__webpack_require__("17d4"))
+        })
+    },
+    [['components/cusPreviewImg/index-create-component']]
+]);

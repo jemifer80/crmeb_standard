@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "商品列表",
+  "navigationBarTextStyle": "white",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "recommend": "/components/recommend/index",
+    "home": "/components/home/index",
+    "home-list": "/components/homeList/index",
+    "waterfalls-flow": "/components/maramlee-waterfalls-flow/maramlee-waterfalls-flow",
+    "product-window": "/components/productWindow/index"
+  }
+}

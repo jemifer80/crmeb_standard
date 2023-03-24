@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "账户登录",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "mobile-login": "/components/loginMobile/index",
+    "routine-phone": "/components/loginMobile/routine_phone"
+  }
+}
