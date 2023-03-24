@@ -53,10 +53,10 @@ class User extends AuthController
 
     /**
      * 显示资源列表
-     *
+     * @param int $salesman_id
      * @return \think\Response
      */
-    public function index()
+    public function index(int $salesman_id = 0)
     {
         $where = $this->request->getMore([
             ['page', 1],
@@ -91,6 +91,7 @@ class User extends AuthController
             unset($where['label_ids']);
         }
         $where['user_time_type'] = $where['user_time_type'] == 'all' ? '' : $where['user_time_type'];
+        $where['salesman_id'] = $salesman_id;
         return $this->success($this->services->index($where));
     }
 
